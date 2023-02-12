@@ -101,6 +101,9 @@ public:
     bool kFlagSaveCleanScans;
     std::string save_pcd_directory_;
 
+    // colorize
+    bool use_rgb;
+
 public:
     RosParamServer();
 

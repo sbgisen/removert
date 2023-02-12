@@ -1,6 +1,7 @@
 #pragma once
 #ifndef _UTILITY_REMOVERT_H_
 #define _UTILITY_REMOVERT_H_
+#define PCL_NO_PRECOMPILE
 
 #include <ros/ros.h>
 
@@ -17,12 +18,6 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include <Eigen/Dense>
-#include <opencv/cv.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/eigen.hpp>
-#include <cv_bridge/cv_bridge.h>
-
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/search/impl/search.hpp>
@@ -38,6 +33,12 @@
 #include <pcl/octree/octree_pointcloud_voxelcentroid.h>
 #include <pcl/filters/crop_box.h> 
 #include <pcl_conversions/pcl_conversions.h>
+
+#include <Eigen/Dense>
+#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/eigen.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 #include <tf/LinearMath/Quaternion.h>
 #include <tf/transform_listener.h>
@@ -87,7 +88,19 @@ using std::endl;
 //     (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity) (float, score, score)
 // )
 
-using PointType = pcl::PointXYZI;
+struct EIGEN_ALIGN16 PointXYZRGBI
+{
+    PCL_ADD_POINT4D
+    PCL_ADD_RGB;
+    PCL_ADD_INTENSITY;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+POINT_CLOUD_REGISTER_POINT_STRUCT(PointXYZRGBI, 
+                                  (float, x, x)(float, y, y)(float, z, z)
+                                  (float, rgb, rgb)
+                                  (float, intensity, intensity))
+
+using PointType = PointXYZRGBI;
 
 struct SphericalPoint
 {

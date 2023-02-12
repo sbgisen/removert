@@ -95,6 +95,9 @@ RosParamServer::RosParamServer()
     nh.param<bool>("removert/saveCleanScansPCD", kFlagSaveCleanScans, false);
     nh.param<std::string>("removert/save_pcd_directory", save_pcd_directory_, "/");
 
+    // colorize
+    nh.param<bool>("removert/use_rgb", use_rgb, false);
+
 
     usleep(100);
 } // ctor RosParamServer
