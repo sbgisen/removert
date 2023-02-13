@@ -74,7 +74,16 @@ public:
             const std::vector<Eigen::Matrix4d>& _scans_poses,
             pcl::PointCloud<PointType>::Ptr& _ptcloud_to_save );
     void octreeDownsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save);
-    void makeGlobalMap();
+
+    pcl::PointCloud<pcl::PointXYZI>::Ptr convertPointCloud(pcl::PointCloud<PointType>::Ptr cloudIn);
+
+    template <typename POINT_TYPE_>
+    typename std::enable_if<std::is_same<POINT_TYPE_, pcl::PointXYZI>::value, void>::type 
+    makeGlobalMap();
+
+    template <typename POINT_TYPE_>
+    typename std::enable_if<std::is_same<POINT_TYPE_, PointType>::value, void>::type
+    makeGlobalMap();
 
     void run(void);
 
@@ -110,8 +119,21 @@ public:
     void parseStaticMapPointcloudUsingPtIdx( std::vector<int>& _point_indexes );
     void parseDynamicMapPointcloudUsingPtIdx( std::vector<int>& _point_indexes );
 
-    void saveCurrentStaticAndDynamicPointCloudGlobal( void );
-    void saveCurrentStaticAndDynamicPointCloudLocal( int _base_pose_idx  = 0);
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, pcl::PointXYZI>::value, void>::type 
+    saveCurrentStaticAndDynamicPointCloudGlobal( void );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, PointType>::value, void>::type
+    saveCurrentStaticAndDynamicPointCloudGlobal( void );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, pcl::PointXYZI>::value, void>::type
+    saveCurrentStaticAndDynamicPointCloudLocal( int _base_pose_idx  = 0 );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, PointType>::value, void>::type
+    saveCurrentStaticAndDynamicPointCloudLocal( int _base_pose_idx  = 0 );
 
     // void local2global(const pcl::PointCloud<PointType>::Ptr& _ptcloud_global, pcl::PointCloud<PointType>::Ptr& _ptcloud_local_to_save );
     pcl::PointCloud<PointType>::Ptr local2global(const pcl::PointCloud<PointType>::Ptr& _scan_local, int _scan_idx);
@@ -123,10 +145,33 @@ public:
 
     void scansideRemovalForEachScan(void);
     void saveCleanedScans(void);
-    void saveMapPointcloudByMergingCleanedScans(void);
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, pcl::PointXYZI>::value, void>::type
+    saveMapPointcloudByMergingCleanedScans(void);
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, PointType>::value, void>::type
+    saveMapPointcloudByMergingCleanedScans(void);
+
     void scansideRemovalForEachScanAndSaveThem(void);
 
-    void saveStaticScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
-    void saveDynamicScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, pcl::PointXYZI>::value, void>::type 
+    saveStaticScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, PointType>::value, void>::type 
+    saveStaticScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, pcl::PointXYZI>::value, void>::type
+    saveDynamicScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
+
+    template <typename POINT_TYPE>
+    typename std::enable_if<std::is_same<POINT_TYPE, PointType>::value, void>::type
+    saveDynamicScan( int _scan_idx, const pcl::PointCloud<PointType>::Ptr& _ptcloud );
+
+    
 
 }; // Removerter
