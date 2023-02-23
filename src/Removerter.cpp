@@ -293,22 +293,32 @@ void Removerter::mergeScansWithinGlobalCoord(
 } // mergeScansWithinGlobalCoord
 
 
-void Removerter::octreeDownsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save)
+void Removerter::Downsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save)
 {
-    pcl::octree::OctreePointCloudVoxelCentroid<PointType> octree( kDownsampleVoxelSize );
-    octree.setInputCloud(_src);
-    octree.defineBoundingBox();
-    octree.addPointsFromInputCloud();
-    pcl::octree::OctreePointCloudVoxelCentroid<PointType>::AlignedPointTVector centroids;
-    octree.getVoxelCentroids(centroids);
+    if(use_rgb)
+    {
+        pcl::VoxelGrid<PointType> downsize_filter;
+        downsize_filter.setLeafSize(kDownsampleVoxelSize, kDownsampleVoxelSize, kDownsampleVoxelSize);
+        downsize_filter.setInputCloud(_src);
+        downsize_filter.filter(*_to_save);
+    }
+    else
+    {
+        pcl::octree::OctreePointCloudVoxelCentroid<PointType> octree( kDownsampleVoxelSize );
+        octree.setInputCloud(_src);
+        octree.defineBoundingBox();
+        octree.addPointsFromInputCloud();
+        pcl::octree::OctreePointCloudVoxelCentroid<PointType>::AlignedPointTVector centroids;
+        octree.getVoxelCentroids(centroids);
 
-    // init current map with the downsampled full cloud 
-    _to_save->points.assign(centroids.begin(), centroids.end());    
-    _to_save->width = 1; 
-    _to_save->height = _to_save->points.size(); // make sure again the format of the downsampled point cloud 
+        // init current map with the downsampled full cloud 
+        _to_save->points.assign(centroids.begin(), centroids.end());    
+        _to_save->width = 1; 
+        _to_save->height = _to_save->points.size(); // make sure again the format of the downsampled point cloud 
+    }
     ROS_INFO_STREAM("\033[1;32m Downsampled pointcloud have: " << _to_save->points.size() << " points.\033[0m");   
     cout << endl;
-} // octreeDownsampling
+} // Downsampling
 
 
 void Removerter::savePCDwithoutRGBBinary(std::string file_name, pcl::PointCloud<PointType>::Ptr cloud)
@@ -344,7 +354,7 @@ void Removerter::makeGlobalMap( void )
     // remove repeated (redundant) points
     // - using OctreePointCloudVoxelCentroid for downsampling 
     // - For a large-size point cloud should use OctreePointCloudVoxelCentroid rather VoxelGrid
-    octreeDownsampling(map_global_orig_, map_global_curr_);
+    Downsampling(map_global_orig_, map_global_curr_);
 
     // save the original cloud 
     if( kFlagSaveMapPointcloud ) {
@@ -875,7 +885,7 @@ void Removerter::saveMapPointcloudByMergingCleanedScans(void)
         pcl::PointCloud<PointType>::Ptr map_global_static_scans_merged_to_verify_full (new pcl::PointCloud<PointType>); 
         pcl::PointCloud<PointType>::Ptr map_global_static_scans_merged_to_verify (new pcl::PointCloud<PointType>); 
         mergeScansWithinGlobalCoord(scans_static_, scan_poses_, map_global_static_scans_merged_to_verify_full);
-        octreeDownsampling(map_global_static_scans_merged_to_verify_full, map_global_static_scans_merged_to_verify);
+        Downsampling(map_global_static_scans_merged_to_verify_full, map_global_static_scans_merged_to_verify);
 
         // global
         std::string local_file_name = map_static_save_dir_ + "/StaticMapScansideMapGlobal.pcd";
@@ -903,7 +913,7 @@ void Removerter::saveMapPointcloudByMergingCleanedScans(void)
         pcl::PointCloud<PointType>::Ptr map_global_dynamic_scans_merged_to_verify_full (new pcl::PointCloud<PointType>); 
         pcl::PointCloud<PointType>::Ptr map_global_dynamic_scans_merged_to_verify (new pcl::PointCloud<PointType>); 
         mergeScansWithinGlobalCoord(scans_dynamic_, scan_poses_, map_global_dynamic_scans_merged_to_verify_full);
-        octreeDownsampling(map_global_dynamic_scans_merged_to_verify_full, map_global_dynamic_scans_merged_to_verify);
+        Downsampling(map_global_dynamic_scans_merged_to_verify_full, map_global_dynamic_scans_merged_to_verify);
 
         // global
         std::string local_file_name = map_dynamic_save_dir_ + "/DynamicMapScansideMapGlobal.pcd";
