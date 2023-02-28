@@ -75,7 +75,7 @@ public:
             pcl::PointCloud<PointType>::Ptr& _ptcloud_to_save );
     void Downsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save);
 
-    void savePCDwithoutRGBBinary(std::string file_name, pcl::PointCloud<PointType>::Ptr cloudIn);
+    void savePCD(std::string file_name, pcl::PointCloud<PointType>::Ptr cloudIn);
 
     void makeGlobalMap();
 
