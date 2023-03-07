@@ -73,7 +73,10 @@ public:
             const std::vector<pcl::PointCloud<PointType>::Ptr>& _scans, 
             const std::vector<Eigen::Matrix4d>& _scans_poses,
             pcl::PointCloud<PointType>::Ptr& _ptcloud_to_save );
-    void octreeDownsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save);
+    void Downsampling(const pcl::PointCloud<PointType>::Ptr& _src, pcl::PointCloud<PointType>::Ptr& _to_save);
+
+    void savePCD(std::string file_name, pcl::PointCloud<PointType>::Ptr cloudIn);
+
     void makeGlobalMap();
 
     void run(void);
