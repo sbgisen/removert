@@ -11,12 +11,6 @@ private:
                                        // scan range (e.g., 200 meters)
   const float kValidDiffUpperBound = 200.0;  // must smaller than kFlagNoPOINT
 
-  // Static sensitivity
-  int kNumKnnPointsToCompare;  // static sensitivity (increase this value, less static structure will be removed at the
-                               // scan-side removal stage)
-  float kScanKnnAndMapKnnAvgDiffThreshold;  // static sensitivity (decrease this value, less static structure will be
-                                            // removed at the scan-side removal stage)
-
   std::vector<std::string> sequence_valid_scan_names_;
   std::vector<std::string> sequence_valid_scan_paths_;
   std::vector<pcl::PointCloud<PointType>::Ptr> scans_;

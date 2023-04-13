@@ -60,6 +60,11 @@ public:
   //
   int kNumOmpCores;
 
+  // scan-side removals
+  bool scan_side_removals_;
+  int kNumKnnPointsToCompare;
+  float kScanKnnAndMapKnnAvgDiffThreshold;
+
   //
   pcl::PointCloud<PointType>::Ptr single_scan;
   pcl::PointCloud<PointType>::Ptr projected_scan;

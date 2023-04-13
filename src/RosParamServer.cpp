@@ -91,6 +91,12 @@ RosParamServer::RosParamServer() : nh(nh_super), ROSimg_transporter_(nh)
   nh.param<int>("removert/keyframe_gap", keyframe_gap_, 10);
   nh.param<float>("removert/keyframe_meter", keyframe_gap_meter_, 2.0);
 
+  // scan-side removals
+  nh.param<bool>("removert/scan_side_removals", scan_side_removals_, true);
+  nh.param<int>("removert/num_nn_points_within", kNumKnnPointsToCompare, 3);  // using higher, more strict static
+  nh.param<float>("removert/dist_nn_points_within", kScanKnnAndMapKnnAvgDiffThreshold,
+                  0.1);  // using smaller, more strict static
+
   // faster
   nh.param<int>("removert/num_omp_cores", kNumOmpCores, 4);
 

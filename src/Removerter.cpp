@@ -30,10 +30,6 @@ Removerter::Removerter()
   pcl::console::setVerbosityLevel(pcl::console::L_ERROR);
   // pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
-  nh.param<int>("removert/num_nn_points_within", kNumKnnPointsToCompare, 3);  // using higher, more strict static
-  nh.param<float>("removert/dist_nn_points_within", kScanKnnAndMapKnnAvgDiffThreshold,
-                  0.1);  // using smaller, more strict static
-
   if (save_pcd_directory_.substr(save_pcd_directory_.size() - 1, 1) != std::string("/"))
     save_pcd_directory_ = save_pcd_directory_ + "/";
   fsmkdir(save_pcd_directory_);
@@ -976,5 +972,8 @@ void Removerter::run(void)
   }
 
   // scan-side removals
-  scansideRemovalForEachScanAndSaveThem();
+  if (scan_side_removals_)
+  {
+    scansideRemovalForEachScanAndSaveThem();
+  }
 }
