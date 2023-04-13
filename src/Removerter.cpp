@@ -100,7 +100,7 @@ void Removerter::parseValidScanInfo(void)
   for (int curr_idx = 0; curr_idx < int(sequence_scan_paths_.size()); curr_idx++)
   {
     // check the scan idx within the target idx range
-    if (curr_idx > end_idx_ || curr_idx < start_idx_)
+    if (!clean_for_all_scan_ && (curr_idx > end_idx_ || curr_idx < start_idx_))
     {
       curr_idx++;
       continue;

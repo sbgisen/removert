@@ -46,6 +46,7 @@ public:
   // target region to removerting
   int start_idx_;
   int end_idx_;
+  bool clean_for_all_scan_;
 
   bool use_keyframe_gap_;
   bool use_keyframe_meter_;
