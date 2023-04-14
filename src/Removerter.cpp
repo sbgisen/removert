@@ -69,6 +69,9 @@ void Removerter::allocateMemory()
   map_global_curr_static_.reset(new pcl::PointCloud<PointType>());
   map_global_curr_dynamic_.reset(new pcl::PointCloud<PointType>());
 
+  output_map_global_static_.reset(new pcl::PointCloud<PointType>());
+  output_map_global_dynamic_.reset(new pcl::PointCloud<PointType>());
+
   map_subset_global_curr_.reset(new pcl::PointCloud<PointType>());
 
   kdtree_map_global_curr_.reset(new pcl::KdTreeFLANN<PointType>());
@@ -507,7 +510,7 @@ void Removerter::parseDynamicMapPointcloudUsingPtIdx(std::vector<int>& _point_in
   extractor.filter(*map_global_curr_dynamic_);
 }  // parseDynamicMapPointcloudUsingPtIdx
 
-void Removerter::saveCurrentStaticAndDynamicPointCloudGlobal(void)
+void Removerter::saveCurrentStaticAndDynamicPointCloudGlobal(bool _reverted)
 {
   if (!kFlagSaveMapPointcloud)
     return;
@@ -515,17 +518,25 @@ void Removerter::saveCurrentStaticAndDynamicPointCloudGlobal(void)
   std::string curr_res_alpha_str = std::to_string(curr_res_alpha_);
 
   // dynamic
-  std::string dyna_file_name = map_dynamic_save_dir_ + "/DynamicMapMapsideGlobalResX" + curr_res_alpha_str + ".pcd";
-  savePCD(dyna_file_name, map_global_curr_dynamic_);
+  std::string dyna_file_name = map_dynamic_save_dir_ + "/RemoveDynamicMapGlobalResX" + curr_res_alpha_str + ".pcd";
+  if (_reverted)
+  {
+    dyna_file_name = map_dynamic_save_dir_ + "/RevertDynamicMapGlobalResX" + curr_res_alpha_str + ".pcd";
+  }
+  savePCD(dyna_file_name, output_map_global_dynamic_);
   ROS_INFO_STREAM("\033[1;32m -- a pointcloud is saved: " << dyna_file_name << "\033[0m");
 
   // static
-  std::string static_file_name = map_static_save_dir_ + "/StaticMapMapsideGlobalResX" + curr_res_alpha_str + ".pcd";
-  savePCD(static_file_name, map_global_curr_static_);
+  std::string static_file_name = map_static_save_dir_ + "/RemoveStaticMapGlobalResX" + curr_res_alpha_str + ".pcd";
+  if (_reverted)
+  {
+    static_file_name = map_static_save_dir_ + "/RevertStaticMapGlobalResX" + curr_res_alpha_str + ".pcd";
+  }
+  savePCD(static_file_name, output_map_global_static_);
   ROS_INFO_STREAM("\033[1;32m -- a pointcloud is saved: " << static_file_name << "\033[0m");
 }  // saveCurrentStaticAndDynamicPointCloudGlobal
 
-void Removerter::saveCurrentStaticAndDynamicPointCloudLocal(int _base_node_idx)
+void Removerter::saveCurrentStaticAndDynamicPointCloudLocal(int _base_node_idx, bool _reverted)
 {
   if (!kFlagSaveMapPointcloud)
     return;
@@ -533,17 +544,25 @@ void Removerter::saveCurrentStaticAndDynamicPointCloudLocal(int _base_node_idx)
   std::string curr_res_alpha_str = std::to_string(curr_res_alpha_);
 
   // dynamic
-  pcl::PointCloud<PointType>::Ptr map_local_curr_dynamic(new pcl::PointCloud<PointType>);
-  transformGlobalMapToLocal(map_global_curr_dynamic_, _base_node_idx, map_local_curr_dynamic);
-  std::string dyna_file_name = map_dynamic_save_dir_ + "/DynamicMapMapsideLocalResX" + curr_res_alpha_str + ".pcd";
-  savePCD(dyna_file_name, map_local_curr_dynamic);
+  pcl::PointCloud<PointType>::Ptr output_map_local_dynamic_(new pcl::PointCloud<PointType>);
+  transformGlobalMapToLocal(output_map_global_dynamic_, _base_node_idx, output_map_local_dynamic_);
+  std::string dyna_file_name = map_dynamic_save_dir_ + "/RemoveDynamicMapLocalResX" + curr_res_alpha_str + ".pcd";
+  if (_reverted)
+  {
+    dyna_file_name = map_dynamic_save_dir_ + "/RevertDynamicMapLocalResX" + curr_res_alpha_str + ".pcd";
+  }
+  savePCD(dyna_file_name, output_map_local_dynamic_);
   ROS_INFO_STREAM("\033[1;32m -- a pointcloud is saved: " << dyna_file_name << "\033[0m");
 
   // static
-  pcl::PointCloud<PointType>::Ptr map_local_curr_static(new pcl::PointCloud<PointType>);
-  transformGlobalMapToLocal(map_global_curr_static_, _base_node_idx, map_local_curr_static);
-  std::string static_file_name = map_static_save_dir_ + "/StaticMapMapsideLocalResX" + curr_res_alpha_str + ".pcd";
-  savePCD(static_file_name, map_local_curr_static);
+  pcl::PointCloud<PointType>::Ptr output_map_local_static_(new pcl::PointCloud<PointType>);
+  transformGlobalMapToLocal(output_map_global_static_, _base_node_idx, output_map_local_static_);
+  std::string static_file_name = map_static_save_dir_ + "/RemoveStaticMapLocalResX" + curr_res_alpha_str + ".pcd";
+  if (_reverted)
+  {
+    static_file_name = map_static_save_dir_ + "/RevertStaticMapLocalResX" + curr_res_alpha_str + ".pcd";
+  }
+  savePCD(static_file_name, output_map_local_static_);
   ROS_INFO_STREAM("\033[1;32m -- a pointcloud is saved: " << static_file_name << "\033[0m");
 
 }  // saveCurrentStaticAndDynamicPointCloudLocal
@@ -716,6 +735,8 @@ void Removerter::removeOnce(float _res_alpha)
   map_global_curr_->clear();
   *map_global_curr_ = *map_global_curr_static_;
 
+  *output_map_global_dynamic_ += *map_global_curr_dynamic_;
+
   // if(kUseSubsetMapCloud) // NOT recommend to use for under 5 million points map input
   //     kdtree_map_global_curr_->setInputCloud(map_global_curr_);
 
@@ -723,15 +744,34 @@ void Removerter::removeOnce(float _res_alpha)
 
 void Removerter::revertOnce(float _res_alpha)
 {
+  // filter spec (i.e., a shape of the range image)
+  curr_res_alpha_ = _res_alpha;
+
   std::pair<int, int> rimg_shape = resetRimgSize(kFOV, _res_alpha);
   float deg_per_pixel = 1.0 / _res_alpha;
   ROS_INFO_STREAM("\033[1;32m Reverting starts with resolution: x" << _res_alpha << " (" << deg_per_pixel
                                                                    << " deg/pixel)\033[0m");
   ROS_INFO_STREAM("\033[1;32m -- The range image size is: [" << rimg_shape.first << ", " << rimg_shape.second
                                                              << "].\033[0m");
-  ROS_INFO_STREAM("\033[1;32m -- ... TODO ... \033[0m");
+  ROS_INFO_STREAM("\033[1;32m -- The number of map points: " << map_global_curr_->points.size() << "\033[0m");
+  ROS_INFO_STREAM("\033[1;32m -- ... starts cleaning ... "
+                  << "\033[0m");
 
-  // TODO
+  // map-side removal: remove and get dynamic (will be removed) points' index set
+  std::vector<int> dynamic_point_indexes = calcDescrepancyAndParseDynamicPointIdxForEachScan(rimg_shape);
+  ROS_INFO_STREAM("\033[1;32m -- The number of dynamic points: " << dynamic_point_indexes.size() << "\033[0m");
+  parseDynamicMapPointcloudUsingPtIdx(dynamic_point_indexes);
+
+  // static_point_indexes == complemently indexing dynamic_point_indexes
+  std::vector<int> static_point_indexes = getGlobalMapStaticIdxFromDynamicIdx(dynamic_point_indexes);
+  ROS_INFO_STREAM("\033[1;32m -- The number of static points: " << static_point_indexes.size() << "\033[0m");
+  parseStaticMapPointcloudUsingPtIdx(static_point_indexes);
+
+  // Update the current map and reset the tree
+  map_global_curr_->clear();
+  *map_global_curr_ = *map_global_curr_dynamic_;
+
+  *output_map_global_static_ += *map_global_curr_static_;
 
 }  // revertOnce
 
@@ -952,26 +992,45 @@ void Removerter::run(void)
   // construct initial map using the scans and the corresponding poses
   makeGlobalMap();
 
+  bool reverted = false;
+
   // map-side removals
   for (float _rm_res : remove_resolution_list_)
   {
     removeOnce(_rm_res);
   }
 
-  // if you want to every iteration's map data, place below two lines to inside of the above for loop
-  saveCurrentStaticAndDynamicPointCloudGlobal();  // if you want to save within the global points uncomment this line
-  saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_);  // w.r.t specific node's coord. 0 means w.r.t the start
-                                                               // node, as an Identity.
+  *output_map_global_static_ = *map_global_curr_static_;
 
-  // TODO
+  // if you want to every iteration's map data, place below two lines to inside of the above for loop
+  saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
+                                                          // line
+  saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
+                                                                         // the start node, as an Identity.
+
   // map-side reverts
   // if you want to remove as much as possible, you can use omit this steps
+  map_global_curr_->clear();
+  *map_global_curr_ = *output_map_global_dynamic_;
+
   for (float _rv_res : revert_resolution_list_)
   {
     revertOnce(_rv_res);
   }
 
+  reverted = true;
+  *output_map_global_dynamic_ = *map_global_curr_dynamic_;
+
+  // if you want to every iteration's map data, place below two lines to inside of the above for loop
+  saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
+                                                          // line
+  saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
+                                                                         // the start node, as an Identity.
+
   // scan-side removals
+  map_global_curr_->clear();
+  *map_global_curr_ = *output_map_global_static_;
+
   if (scan_side_removals_)
   {
     scansideRemovalForEachScanAndSaveThem();
