@@ -8,7 +8,9 @@ int main(int argc, char** argv)
   Removerter RMV;
   RMV.run();
 
-  ros::spin();
+  // ros::spin(); // TODO, for real-time integration (later)
+  ROS_INFO("\033[1;32m----> Removerter Done.\033[0m");
+  ros::shutdown();
 
   return 0;
 }
