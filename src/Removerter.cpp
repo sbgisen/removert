@@ -995,37 +995,43 @@ void Removerter::run(void)
   bool reverted = false;
 
   // map-side removals
-  for (float _rm_res : remove_resolution_list_)
+  if (map_side_removals_)
   {
-    removeOnce(_rm_res);
+    for (float _rm_res : remove_resolution_list_)
+    {
+      removeOnce(_rm_res);
+    }
+
+    *output_map_global_static_ = *map_global_curr_static_;
+
+    // if you want to every iteration's map data, place below two lines to inside of the above for loop
+    saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
+                                                            // line
+    saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
+                                                                          // the start node, as an Identity.
   }
-
-  *output_map_global_static_ = *map_global_curr_static_;
-
-  // if you want to every iteration's map data, place below two lines to inside of the above for loop
-  saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
-                                                          // line
-  saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
-                                                                         // the start node, as an Identity.
 
   // map-side reverts
   // if you want to remove as much as possible, you can use omit this steps
-  map_global_curr_->clear();
-  *map_global_curr_ = *output_map_global_dynamic_;
-
-  for (float _rv_res : revert_resolution_list_)
+  if (map_side_reverts_)
   {
-    revertOnce(_rv_res);
+    map_global_curr_->clear();
+    *map_global_curr_ = *output_map_global_dynamic_;
+
+    for (float _rv_res : revert_resolution_list_)
+    {
+      revertOnce(_rv_res);
+    }
+
+    reverted = true;
+    *output_map_global_dynamic_ = *map_global_curr_dynamic_;
+
+    // if you want to every iteration's map data, place below two lines to inside of the above for loop
+    saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
+                                                            // line
+    saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
+                                                                          // the start node, as an Identity.
   }
-
-  reverted = true;
-  *output_map_global_dynamic_ = *map_global_curr_dynamic_;
-
-  // if you want to every iteration's map data, place below two lines to inside of the above for loop
-  saveCurrentStaticAndDynamicPointCloudGlobal(reverted);  // if you want to save within the global points uncomment this
-                                                          // line
-  saveCurrentStaticAndDynamicPointCloudLocal(base_node_idx_, reverted);  // w.r.t specific node's coord. 0 means w.r.t
-                                                                         // the start node, as an Identity.
 
   // scan-side removals
   map_global_curr_->clear();
