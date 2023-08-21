@@ -119,6 +119,7 @@ public:
 
   void saveCurrentStaticAndDynamicPointCloudGlobal(bool _reverted = false);
   void saveCurrentStaticAndDynamicPointCloudLocal(int _base_pose_idx = 0, bool _reverted = false);
+  void readCurrentStaticAndDynamicPointCloudGlobal();
 
   // void local2global(const pcl::PointCloud<PointType>::Ptr& _ptcloud_global, pcl::PointCloud<PointType>::Ptr&
   // _ptcloud_local_to_save );

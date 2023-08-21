@@ -60,6 +60,12 @@ public:
   //
   int kNumOmpCores;
 
+  // map-side removals
+  bool map_side_removals_;
+
+  // map-side reverts
+  bool map_side_reverts_;
+
   // scan-side removals
   bool scan_side_removals_;
   int kNumKnnPointsToCompare;
